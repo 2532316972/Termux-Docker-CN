@@ -24,7 +24,7 @@ curl -L "https://raw.githubusercontent.com/Zeioth/termux-docker/main/alpine/inst
 # 下载已为中国用户配置好的 answerfile 
 curl -L "https://raw.githubusercontent.com/2532316972/Termux-Docker-CN/main/alpine/answerfile" > "$INSTALL_DIR/answerfile"
 # 下载映射端口管理器
-curl -L "https://raw.githubusercontent.com/2532316972/Termux-Docker-CN/main/alpine/qemu_port_manager.sh" > "$INSTALL_DIR/answerfile"
+curl -L "https://raw.githubusercontent.com/2532316972/Termux-Docker-CN/main/alpine/qemu_port_manager.sh" > "$INSTALL_DIR/qemu_port_manager.sh"
 
 # 为便捷脚本添加可执行权限
 chmod +x "$INSTALL_DIR/ssh2qemu.sh"
