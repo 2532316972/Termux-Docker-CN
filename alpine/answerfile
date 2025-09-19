@@ -4,16 +4,12 @@ INTERFACESOPTS="auto lo
 iface lo inet loopback
 
 auto eth0
-iface eth0 inet static
-    hostname alpine
-    address 192.168.50.15
-    netmask 255.255.255
-    gateway 192.168.50.2
+iface eth0 inet dhcp
 "
-DNSOPTS="1.1.1.1"
+DNSOPTS="8.8.8.8 114.114.114.114"
 TIMEZONEOPTS="-z UTC"
 PROXYOPTS="none"
-APKREPOSOPTS="http://dl-cdn.alpinelinux.org/alpine/latest-stable/main http://dl-cdn.alpinelinux.org/alpine/latest-stable/community"
+APKREPOSOPTS="https://mirrors.tuna.tsinghua.edu.cn/alpine/latest-stable/main https://mirrors.tuna.tsinghua.edu.cn/alpine/latest-stable/community"
 SSHDOPTS="-c openssh"
 NTPOPTS="-c busybox"
 DISKOPTS="-v -m sys -s 0 /dev/sda"
