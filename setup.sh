@@ -37,7 +37,7 @@ chmod +x "$INSTALL_DIR/qemu_port_manager.sh"
 expect -f "$INSTALL_DIR/installqemu.expect"
 
 echo "=============================================="
-echo "安装完成！"
+echo "运行完成！"
 echo "启动虚拟机: ~/alpine/startqemu.sh"
 echo "连接虚拟机: ~/alpine/ssh2qemu.sh"
 echo "端口管理器: ~/alpine/qemu_port_manager.sh"
