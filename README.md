@@ -9,13 +9,13 @@
 本项目在原版基础上做了以下四大核心调整与优化：
 
 1. **🚀 极速安装体验**  
-   所有软件源替换为**清华大学开源镜像站**，大幅提升 Alpine Linux 和 Docker 的下载与安装速度，避免卡顿、失败。
+   用 DHCP **自动获取** IP，避免静态 IP 配置冲突。使用 **8.8.8.8 和 114.114.114.114** 作为 DNS 服务器，确保域名解析。使用**清华大学的镜像源**下载软件包，速度飞快，大幅提升 Alpine Linux 和 Docker 的下载与安装速度，避免卡顿、失败。
 
 2. **💪 性能默认配置调整**  
    启动脚本 `startqemu.sh`与 配置文件 `config.env` 中默认分配了**更多 CPU(6核) 核心与内存(8GB)、硬盘空间(20G)**（默认 2 核 + 1GB + 4G），适合运行轻量级容器服务。若设备性能有限，可自行编辑调整。
 
 3. **🌐 Docker镜像加速器**  
-   安装时，自动完成对daemon.json的配置，保证Docker镜像拉取顺利
+   安装时，自动完成对`daemon.json`的配置，加速保证Docker镜像拉取顺利
 
 4. **🧩 小白友好端口管理器**  
    新增 `qemu_port_manager.sh` 脚本，支持：
@@ -94,31 +94,18 @@ curl -o setup.sh https://raw.githubusercontent.com/2532316972/termux-docker-CN/m
 - **密码**：`MyAlpine@2025!`
 
 > ✅ 登录成功后，在虚拟机的命令行中可以使用以下命令修改登录密码：
-```bash
-passwd
-```
+> ```bash
+> passwd
+> ```
+> 按提示输入新密码即可
 
 ---
 
-#### 🌐 登录方式（二选一）
+#### 🖥️ 操作方式说明
 
-#### 方式一：使用 SSH 连接
+执行 `startqemu.sh` 后，当前 Termux 窗口将**直接进入 QEMU 虚拟机的控制台界面**。你无需切换窗口或使用其他工具，直接在此界面输入用户名和密码即可登录并开始使用。
 
-虚拟机启动后，**另开一个 Termux 窗口**，执行：
-
-```bash
-~/alpine/ssh2qemu.sh
-```
-
----
-
-#### 方式二：直接在 QEMU 控制台操作
-
-启动 `startqemu.sh` 后，Termux 窗口将直接进入虚拟机控制台，可直接输入用户名密码登录。
-
----
-
-> 💡 **温馨提示**：无论使用哪种方式登录，操作的都是同一个虚拟机系统，数据完全同步。
+> 💡 **重要提示**：所有 Docker 操作都必须在登录此虚拟机控制台后执行。Termux 主环境本身不包含 Docker，它只是一个运行虚拟机的“宿主平台”。
 
 ---
 
@@ -133,100 +120,29 @@ docker run hello-world
 
 ---
 
-### 🖥️ 使用 Portainer（可视化容器管理）
+### 🖥️ 使用 DPanel Lite（轻量级可视化容器管理面板）
+
+> ✅ 专为个人内网使用设计，无需绑定 80/443 端口，更轻量、更简洁。  
+> 📱 在手机浏览器中即可管理所有 Docker 容器、镜像、网络和卷，中文面版。
 
 ```bash
 docker run -d \
-  -p 8000:8000 \
-  -p 9000:9000 \
-  --name=portainer \
+  --name dpanel \
   --restart=always \
+  -p 8807:8080 \
+  -e APP_NAME=dpanel \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v ~/docker-volumes/portainer:/home \
-  portainer/portainer-ce \
-  && echo "✅ Portainer 已启动！请在浏览器打开：http://localhost:9000"
+  -v ~/docker-volumes/dpanel:/dpanel \
+  registry.cn-hangzhou.aliyuncs.com/dpanel/dpanel:lite \
+  && echo "✅ DPanel 已启动！请在浏览器打开：http://localhost:8807"
 ```
 
 > 🌐 如果你想从**局域网其他设备访问**，请将 `localhost` 替换为你的手机在局域网中的 IP 地址，例如：  
-> `http://192.168.1.100:9000`
+> `http://192.168.1.100:8807`
 
 单行复制版：
 ```bash
-docker run -d -p 8000:8000 -p 9000:9000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v ~/docker-volumes/portainer:/data portainer/portainer-ce && echo "✅ Portainer 启动成功！请访问 → http://localhost:9000"
-```
-
----
-
-### ☸️ 使用 Kubernetes（轻量级集群）
-
-```bash
-docker run -it \
-  --entrypoint /bin/sh \
-  -p 6443:6443 \
-  -p 2379:2380 \
-  -p 10250:10250 \
-  -p 10259:10259 \
-  -p 10257:10257 \
-  -p 30001:32767 \
-  -v ~/docker-volumes/kubernetes:/home \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  alpine/k8s:1.24.12
-```
-
-> ⚠️ 注意：此容器需交互式运行（`-it`），后台运行不会自动启动服务。适合学习和调试。
-
-单行复制版：
-```bash
-docker run -it --entrypoint /bin/sh -p 6443:6443 -p 2379:2380 -p 10250:10250 -p 10259:10259 -p 10257:10257 -p 30001:32767 -v ~/docker-volumes/kubernetes:/home -v /var/run/docker.sock:/var/run/docker.sock alpine/k8s:1.24.12
-```
-
----
-
-### 📊 使用 Prometheus（监控数据采集）
-
-```bash
-# 请先创建配置文件 prometheus.yml
-# 示例配置：https://github.com/prometheus/prometheus/blob/main/documentation/examples/prometheus.yml
-
-docker run -d \
-  -p 9090:9090 \
-  -v /path/to/prometheus.yml:/etc/prometheus/prometheus.yml \
-  --name=prometheus \
-  --restart=always \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v ~/docker-volumes/prometheus:/home \
-  prom/prometheus \
-  && echo "✅ Prometheus 已启动！访问：http://localhost:9090"
-```
-
-> 📝 请务必将 `/path/to/prometheus.yml` 替换为你实际存放配置文件的路径！
-
-
-单行复制版：
-```bash
-mkdir -p ~/docker-volumes/prometheus && echo "global: scrape_interval: 15s scrape_configs: - job_name: 'prometheus' static_configs: - targets: ['localhost:9090']" > ~/docker-volumes/prometheus/prometheus.yml && docker run -d -p 9090:9090 --name=prometheus --restart=always -v ~/docker-volumes/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml -v ~/docker-volumes/prometheus:/prometheus prom/prometheus && echo "✅ Prometheus 启动成功！请访问 → http://localhost:9090"
-```
-
----
-
-### 📈 使用 Grafana（数据可视化面板）
-
-```bash
-docker run -d \
-  -p 3000:3000 \
-  --name=grafana \
-  --restart=always \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v ~/docker-volumes/grafana:/home \
-  grafana/grafana-oss:8.5.22 \
-  && echo "✅ Grafana 已启动！访问：http://localhost:3000"
-```
-
-> 默认登录：admin / admin（首次登录会要求修改密码）
-
-单行复制版：
-```bash
-docker run -d -p 3000:3000 --name=grafana --restart=always -v ~/docker-volumes/grafana:/var/lib/grafana grafana/grafana-oss:8.5.22 && echo "✅ Grafana 启动成功！请访问 → http://localhost:3000 (默认账号: admin/admin)"
+mkdir -p ~/docker-volumes/dpanel && docker run -d --name dpanel --restart=always -p 8807:8080 -e APP_NAME=dpanel -v /var/run/docker.sock:/var/run/docker.sock -v ~/docker-volumes/dpanel:/dpanel registry.cn-hangzhou.aliyuncs.com/dpanel/dpanel:lite && echo "🎉 DPanel Lite 启动成功！访问 → http://localhost:8807"
 ```
 
 ---
@@ -275,14 +191,6 @@ docker run -d -p 3000:3000 --name=grafana --restart=always -v ~/docker-volumes/g
 >  ~/alpine/qemu_port_manager.sh
 > ```
 > 来使用端口管理器进行增加或删除端口
-
----
-
-### Q8：简单解释一下技术架构？
-> `setup.sh` → 使用 QEMU 创建 Alpine Linux 虚拟机 → 自动安装 Docker → 你可以在 VM 中运行任何 Docker 容器。  
-> Portainer = 可视化管理面板  
-> Kubernetes = 容器编排（学习用）  
-> Prometheus + Grafana = 监控 + 可视化
 
 ---
 
