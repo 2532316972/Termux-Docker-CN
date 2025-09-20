@@ -1,31 +1,38 @@
 ###############################################
 #
-# install alpine with docker in qemu x86_64
+# 在 QEMU x86_64 中使用 Docker 安装 Alpine Linux
 #
 
-# Wait enough (forever) until a long-time boot
+# 设置超时为无限，等待长时间启动过程
 set timeout -1
 
+# 下载 Alpine ISO 镜像（支持断点续传）
 spawn curl -v -L -o alpine.iso -C - $env(ALPINE_ISO_URL)
 expect "left intact"
 
+# 删除旧的 SSH 密钥对（如果存在）
 spawn rm -f ./qemukey ./qemukey.pub
 sleep 5
+# 生成新的 SSH 密钥对，用于后续免密登录
 spawn ssh-keygen -b 2048 -t rsa -N "" -f ./qemukey
-
 expect "\[SHA256\]"
 
+# 读取公钥和预设的 answerfile（自动应答文件）
 set qemukey [exec cat ./qemukey.pub]
 set answerfile [exec cat ./answerfile]
 
 #
-# install the system
+# 开始安装系统
 #
 
+# 删除旧的虚拟磁盘镜像
 spawn rm -f alpine.img
+# 创建新的 qcow2 格式虚拟磁盘，大小由环境变量 DISK_SIZE 指定
 spawn qemu-img create -f qcow2 alpine.img $env(DISK_SIZE)
 
 sleep 5
+
+# 启动 QEMU 虚拟机，使用 UEFI 启动、端口转发 2222→22、挂载 ISO、无图形界面
 spawn qemu-system-x86_64 -machine q35 -m 1024 -smp cpus=2 -cpu qemu64 \
    -drive if=pflash,format=raw,read-only,file=$env(PREFIX)/share/qemu/edk2-x86_64-code.fd \
    -netdev user,id=n1,hostfwd=tcp::2222-:22,net=192.168.50.0/24 -device virtio-net,netdev=n1 \
@@ -34,76 +41,82 @@ spawn qemu-system-x86_64 -machine q35 -m 1024 -smp cpus=2 -cpu qemu64 \
 
 set qemuID $spawn_id
 
+# 等待登录提示，登录 root（默认无密码）
 expect "login:"
 send "root\r"
 
-#expect "Password:"
-#send "\n"
-
 expect "localhost:~#"
+# 配置网络接口
 send "setup-interfaces\r"
 
 expect "\[eth0\]"
-send "\r"
+send "\r"  ;# 选择 eth0
 
 expect "\[dhcp\]"
-send "\r"
+send "\r"  ;# 使用 DHCP
 
 expect "\[no\]"
-send "\r"
+send "\r"  ;# 不立即启动
 
 expect "localhost:~#"
-send "ifup eth0\r"
+send "ifup eth0\r"  ;# 手动启动 eth0
 
+# 修改 setup-disk 脚本，确保内核参数包含 console=ttyS0（串口输出）
 expect "localhost:~#"
 send "sed -i -E 's/(local kernel_opts)=.*/\\1=\"console=ttyS0\"/' /sbin/setup-disk\r"
 
+# 创建 answerfile 自动应答文件
 expect "localhost:~#"
 send "vi /root/answerfile\r"
 sleep 3
-send "i"
+send "i"  ;# 进入插入模式
 sleep 3
-send "$answerfile\r"
-# Escape
+send "$answerfile\r"  ;# 写入内容
 sleep 3
-send [format "%c(" 27]
+send [format "%c(" 27]  ;# 发送 ESC 键
 sleep 3
-send ":wq\r"
+send ":wq\r"  ;# 保存退出
 sleep 3
 
+# 验证文件写入
 send "cat /root/answerfile\r"
 sleep 3
 
+# 开始自动安装 Alpine
 expect "localhost:~#"
 send "setup-alpine -f answerfile\r"
 
+# 设置 root 密码（两次）
+expect "password:"
+send "$env(ROOT_PASSWORD)\n"
 expect "password:"
 send "$env(ROOT_PASSWORD)\n"
 
-expect "password:"
-send "$env(ROOT_PASSWORD)\n"
-
+# 不创建普通用户
 expect "Setup a user?"
 send "no\r"
 
+# 确认擦除磁盘并安装
 expect "WARNING: Erase the above disk(s) and continue?"
 send "y\r"
 
+# 安装完成，要求重启
 expect "Please reboot"
 send "halt\r"
 
 expect "System halted"
 
-# Ctrl-a + x (qemu machine monitor halt)
+# 发送 QEMU 控制命令：Ctrl+A, 然后 x 退出虚拟机
 send "\x01"
 send "x"
 
 close -i $qemuID
 
 #
-# setup the system
+# 第二次启动：系统已安装，进行后续配置
 #
 sleep 5
+
 spawn qemu-system-x86_64 -machine q35 -m 1024 -smp cpus=2 -cpu qemu64 \
   -drive if=pflash,format=raw,read-only,file=$env(PREFIX)/share/qemu/edk2-x86_64-code.fd \
   -netdev user,id=n1,hostfwd=tcp::2222-:22,net=192.168.50.0/24 -device virtio-net,netdev=n1 \
@@ -117,45 +130,66 @@ send "root\r"
 expect "Password:"
 send "$env(ROOT_PASSWORD)\n"
 
+# 更新包索引，安装 Docker 和 ip6tables（Docker 依赖）
 expect "#"
 send "apk update && apk add docker ip6tables\r"
 
+# 启动 Docker 服务
 expect "#"
 send "service docker start\r"
 
+# 设置 Docker 开机自启
 expect "#"
 send "rc-update add docker\r"
 
+# 安装 zram-init（内存压缩优化）
 expect "#"
 send "apk add zram-init\r"
 
-# fix broken zram init script
+# 修复 zram-init 脚本（默认 num_devices=2 可能报错，改为 1）
 expect "#"
 send "sed -i -E 's/num_devices=2/num_devices=1/' /etc/conf.d/zram-init\r"
 
+# 启动 zram 并设为开机自启
 expect "#"
 send "service zram-init start\r"
-
 expect "#"
 send "rc-update add zram-init\r"
 
+# 配置 SSH 公钥登录
 expect "#"
 send "mkdir -p /root/.ssh\r"
-
 expect "#"
 send "chmod 700 /root/.ssh\r"
-
 expect "#"
 send "echo $qemukey >> /root/.ssh/authorized_keys\r"
 
+expect "#"
+send "mkdir -p /etc/docker\r"
+
+expect "#"
+send "cat > /etc/docker/daemon.json << 'EOF'\r"
+send "{\r"
+send "  \"registry-mirrors\": [\"https://dockerproxy.net\"]\r"
+send "}\r"
+send "EOF\r"
+
+# 重启 Docker 使配置生效
+expect "#"
+send "service docker restart\r"
+
+# 验证配置是否加载成功（可选）
+expect "#"
+send "docker info | grep -A 1 \"Registry Mirrors\"\r"
+
+# 关机
 expect "#"
 send "halt\r"
 
 expect "System halted"
 
-# Ctrl-a + x (qemu machine monitor halt)
+# 退出 QEMU
 send "\x01"
 send "x"
 
 close -i $qemuID
-
