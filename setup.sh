@@ -18,10 +18,10 @@ curl -L "https://raw.githubusercontent.com/2532316972/Termux-Docker-CN/main/alpi
 # SSH 连接虚拟机脚本
 curl -L "https://raw.githubusercontent.com/Zeioth/termux-docker/main/alpine/ssh2qemu.sh" > "$INSTALL_DIR/ssh2qemu.sh"
 # 启动虚拟机脚本
-curl -L "https://raw.githubusercontent.com/2532316972/Termux-Docker-CN/main/alpine/startqemu.sh" > "$INSTALL_DIR/startqemu.sh"
+curl -L "https://raw.githubusercontent.com/2532316972/Termux-Docker-CN/main/alpine/startqemu.sh" > "$INSTALL_DIR/startqemu.sh"  
 # 核心自动化安装脚本
-curl -L "https://raw.githubusercontent.com/Zeioth/termux-docker/main/alpine/installqemu.expect" > "$INSTALL_DIR/installqemu.expect"
-# 下载已为中国用户配置好的 answerfile 
+curl -L "https://raw.githubusercontent.com/2532316972/Termux-Docker-CN/main/alpine/installqemu.expect" > "$INSTALL_DIR/installqemu.expect"
+# 下载answerfile 
 curl -L "https://raw.githubusercontent.com/2532316972/Termux-Docker-CN/main/alpine/answerfile" > "$INSTALL_DIR/answerfile"
 # 下载映射端口管理器
 curl -L "https://raw.githubusercontent.com/2532316972/Termux-Docker-CN/main/alpine/qemu_port_manager.sh" > "$INSTALL_DIR/qemu_port_manager.sh"
