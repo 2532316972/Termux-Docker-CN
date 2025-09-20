@@ -95,7 +95,7 @@ curl -o setup.sh https://raw.githubusercontent.com/2532316972/termux-docker-CN/m
 
 > ✅ 登录成功后，在虚拟机的命令行中可以使用以下命令修改登录密码：
 ```bash
-passwd  
+passwd
 ```
 
 ---
