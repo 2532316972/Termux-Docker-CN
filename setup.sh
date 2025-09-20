@@ -15,8 +15,6 @@ mkdir -p "$INSTALL_DIR" && cd "$INSTALL_DIR"
 # 从 GitHub 仓库下载所有必需文件
 # 环境配置文件
 curl -L "https://raw.githubusercontent.com/2532316972/Termux-Docker-CN/main/alpine/config.env" > "$INSTALL_DIR/config.env"
-# SSH 连接虚拟机脚本
-curl -L "https://raw.githubusercontent.com/Zeioth/termux-docker/main/alpine/ssh2qemu.sh" > "$INSTALL_DIR/ssh2qemu.sh"
 # 启动虚拟机脚本
 curl -L "https://raw.githubusercontent.com/2532316972/Termux-Docker-CN/main/alpine/startqemu.sh" > "$INSTALL_DIR/startqemu.sh"
 # 核心自动化安装脚本
