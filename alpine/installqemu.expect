@@ -166,19 +166,24 @@ expect "#"
 send "mkdir -p /etc/docker\r"
 
 expect "#"
-send "cat > /etc/docker/daemon.json << 'EOF'\r"
-send "{\n"
-send "  \"registry-mirrors\": [\"https://dockerproxy.net\"]\n"
-send "}\n"
-send "EOF\r"
+send "printf '%s\\n' '{\"registry-mirrors\": [\"https://dockerproxy.net\"]}' > /etc/docker/daemon.json\r"
 
-# 重启 Docker 使配置生效
+expect "#"
+send "cat /etc/docker/daemon.json\r"
+
+expect "#"
+# 兜底：验证文件内容是否存在
+send "grep -q \"https://dockerproxy.net\" /etc/docker/daemon.json && echo '>>> FILE OK' || echo '>>> FILE FAILED'\r"
+expect ">>> FILE OK"
+
 expect "#"
 send "service docker restart\r"
 
-# 验证配置是否加载成功
 expect "#"
-send "docker info | grep -A 1 \"Registry Mirrors\"\r"
+# 验证 Docker 是否识别配置
+send "docker info 2>/dev/null | grep -A 1 \"Registry Mirrors\" && echo '>>> MIRROR CONFIG OK' || echo '>>> MIRROR CONFIG FAILED'\r"
+
+expect ">>> MIRROR CONFIG OK"
 
 # 关机
 expect "#"
