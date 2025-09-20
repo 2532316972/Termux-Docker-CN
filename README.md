@@ -267,7 +267,7 @@ docker run -d -p 3000:3000 --name=grafana --restart=always -v ~/docker-volumes/g
 
 ---
 
-### Q7：为什么我无法访问到docker部署的项目？
+### Q7：为什么我无法访问到docker部署的容器？
 > 因为你没有修改虚拟机启动脚本的端口映射。
 > 什么？你不会？
 > 没关系，我们为你准备了傻瓜式工具，请使用：
