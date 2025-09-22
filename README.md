@@ -165,7 +165,6 @@ nano ~/.profile
 在文件中粘贴以下所有内容：
 
 ```bash
-# ========== 登录时自动挂载 QEMU 共享文件夹 ==========
 # 检查共享文件夹是否已挂载，避免重复操作
 if ! mountpoint -q /shared; then
     echo "⏳ 正在挂载 Termux 共享文件夹，请稍候..."
@@ -197,7 +196,6 @@ if ! mountpoint -q /shared; then
 else
     echo "✅ 共享文件夹已挂载。"
 fi
-# ========== 挂载脚本结束 ==========
 ```
 
 **保存与生效**：
