@@ -137,7 +137,7 @@ docker run hello-world
 在**虚拟机内**执行以下单行命令即可一键部署：
 
 ```bash
-mkdir -p ~/docker-volumes/dpanel && docker run -d --name dpanel --restart=always -p 8807:8080 -e APP_NAME=dpanel -v /var/run/docker.sock:/var/run/docker.sock -v ~/docker-volumes/dpanel:/dpanel registry.cn-hangzhou.aliyuncs.com/dpanel/dpanel:lite && echo "🎉 DPanel Lite 启动成功！请在浏览器访问 → http://localhost:8807"
+mkdir -p ~/docker-volumes/dpanel && docker run -d --name dpanel --restart=always -p 8807:8080 -e APP_NAME=dpanel -v /var/run/docker.sock:/var/run/docker.sock -v ~/docker-volumes/dpanel:/dpanel registry.cn-hangzhou.aliyuncs.com/dpanel/dpanel:lite
 ```
 
 > 🌐 **访问地址**：
